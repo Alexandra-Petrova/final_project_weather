@@ -65,45 +65,21 @@ class MainWindow(QMainWindow):
         try:
             with open('location.json', 'r', encoding='utf-8') as file:
                 self.user_city_location = json.load(file)
-        except json.decoder.JSONDecodeError as ex:
+        except (json.decoder.JSONDecodeError, FileNotFoundError) as ex:
             self.user_city_location = None
         print(self.user_city_location)
       
         try:
             with open("forecast.json", "r", encoding="utf-8") as file:
                 self.forecast_params = json.load(file)
-        except json.decoder.JSONDecodeError as ex:
+        except (json.decoder.JSONDecodeError, FileNotFoundError) as ex:
             self.forecast_params = None
         print(self.forecast_params)
+        
+        if self.user_city_location and self.forecast_params:
+            self.get_forecast_for_new_city()
+        
 
-    
-
-    # def get_forecast_for_new_city(self):
-    #     if not self.user_city_location:
-    #         self.user_city_location = GetLocation(self.user_city.toPlainText())
-    #         self.user_city_location.get_json()
-    #     print(1)
-    #     location_params = self.user_city_location.read_json()
-    #     print(2)
-    #
-    #     if not self.forecast:
-    #         self.forecast = Forecasts(location_params['latitude'],
-    #                                   location_params['longitude'],
-    #                                   location_params['timezone'])
-    #         print(3)
-    #         with open("forecast.txt", "w", newline="", encoding="utf-8") as file:
-    #             json.dump(self.forecast, file)
-    #         print(4)
-    #     with open("forecast.txt", "r", encoding="utf-8") as file:
-    #         self.forecast = json.load(file)
-    #     print(5)
-    #
-    #     print(self.forecast.get_current_weather())
-    #     pprint(self.forecast.get_today_weather().index)
-    #     pprint(self.forecast.get_today_weather().columns)
-    #     pd.set_option('display.max_columns', None)
-    #     pprint(self.forecast.get_today_weather())
-    #     pprint(self.forecast.get_3days_weather())
     
     def get_forecast_for_new_city(self):
         if not self.user_city_location:
@@ -123,16 +99,21 @@ class MainWindow(QMainWindow):
             with open("forecast.json", "r", encoding="utf-8") as file:
                 self.forecast_params = json.load(file)
             
-        self.forecast = Forecasts(self.forecast_params['latitude'],
+        forecast = Forecasts(self.forecast_params['latitude'],
                                 self.forecast_params['longitude'],
                                 self.forecast_params['timezone'])
-            
-        print(self.forecast.get_current_weather())
-        pprint(self.forecast.get_today_weather().index)
-        pprint(self.forecast.get_today_weather().columns)
+        
+        
+        print(forecast.get_current_weather())
+        pprint(forecast.get_today_weather().index)
+        pprint(forecast.get_today_weather().columns)
         pd.set_option('display.max_columns', None)
-        pprint(self.forecast.get_today_weather())
-        pprint(self.forecast.get_3days_weather())
+        pprint(forecast.get_today_weather())
+        pprint(forecast.get_3days_weather())
+        
+        # return forecast
+            
+        
     
         
 
