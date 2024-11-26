@@ -1,6 +1,5 @@
 import json
 import sys
-from pprint import pprint
 
 import pandas as pd
 from PyQt6.QtGui import QPixmap
@@ -10,7 +9,8 @@ from class_Forecast import Forecasts
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, \
-    QWidget, QVBoxLayout, QLineEdit, QTextEdit, QHBoxLayout
+    QWidget, QVBoxLayout, QLineEdit, QTextEdit, QHBoxLayout, QTableWidget, \
+    QTableWidgetItem
 
 
 class MainWindow(QMainWindow):
@@ -19,22 +19,31 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         self.setWindowTitle("Погода")
-        self.setFixedSize(QSize(800, 600))
+        self.setFixedSize(QSize(1200, 600))
         
         self.user_city = QTextEdit()
         self.user_city.setFixedSize(400, 30)
         self.user_city.setPlaceholderText('Введите город')
         self.add_btn = QPushButton('Найти')
         self.add_btn.setFixedSize(60, 30)
-        self.add_btn.clicked.connect(self.get_forecast_for_new_city)
+        self.add_btn.clicked.connect(self.fill_tables_with_forecasts)
         
         self.current_weather = QLabel('Текущая погода')
         # self.city =
         # self.current_time =
+        self.current_table = QTableWidget(2, 9)
+        self.current_table.setRowCount(2)
+        self.current_table.setColumnCount(9)
 
         self.today_weather = QLabel('Погода на сегодня')
+        self.today_table = QTableWidget()
+        self.today_table.setRowCount(4)
+        self.today_table.setColumnCount(25)
 
         self.future_days_weather = QLabel('Погода на ближайшие 3 дня')
+        self.future_table = QTableWidget()
+        self.future_table.setRowCount(4)
+        self.future_table.setColumnCount(5)
         
         user_city_layout = QHBoxLayout()
         user_city_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -43,12 +52,15 @@ class MainWindow(QMainWindow):
         
         current_weather_layout = QHBoxLayout()
         current_weather_layout.addWidget(self.current_weather)
+        current_weather_layout.addWidget(self.current_table)
         
         today_weather_layout = QHBoxLayout()
         today_weather_layout.addWidget(self.today_weather)
+        today_weather_layout.addWidget(self.today_table)
 
         future_days_weather_layout = QHBoxLayout()
         future_days_weather_layout.addWidget(self.future_days_weather)
+        future_days_weather_layout.addWidget(self.future_table)
         
         base_layout = QVBoxLayout()
         base_layout.addLayout(user_city_layout)
@@ -77,11 +89,11 @@ class MainWindow(QMainWindow):
         print(self.forecast_params)
         
         if self.user_city_location and self.forecast_params:
-            self.get_forecast_for_new_city()
+            self.fill_tables_with_forecasts()
         
 
     
-    def get_forecast_for_new_city(self):
+    def get_forecast_for_city(self):
         if not self.user_city_location:
             self.user_city_location = GetLocation(self.user_city.toPlainText())
             self.user_city_location.get_json()
@@ -103,20 +115,37 @@ class MainWindow(QMainWindow):
                                 self.forecast_params['longitude'],
                                 self.forecast_params['timezone'])
         
-        
-        print(forecast.get_current_weather())
-        pprint(forecast.get_today_weather().index)
-        pprint(forecast.get_today_weather().columns)
-        pd.set_option('display.max_columns', None)
-        pprint(forecast.get_today_weather())
-        pprint(forecast.get_3days_weather())
-        
-        # return forecast
-            
-        
+        return forecast
     
+    def fill_tables_with_forecasts(self):
         
+        forecast_data = self.get_forecast_for_city()
+        
+        current_forecast_data = forecast_data.get_current_weather()
+        for i, data in enumerate(current_forecast_data.items()):
+            item_params = QTableWidgetItem(data[0])
+            item_values = QTableWidgetItem(str(data[1]))
+            
+            self.current_table.setItem(0, i, item_params)
+            self.current_table.setItem(1, i, item_values)
+        
+        today_forecast_data = forecast_data.get_today_weather()
+        for i, data in enumerate(today_forecast_data.items()):
+            item_time = QTableWidgetItem(str(data[0]))
+            self.today_table.setItem(i, 0, item_time)
+            for x in range(0,24):
+                item_temperature = QTableWidgetItem(str(data[1][x]))
+                self.today_table.setItem(i, x+1, item_temperature)
+                
+        future_forecast_data = forecast_data.get_3days_weather()
+        for i, data in enumerate(future_forecast_data.items()):
+            item_params = QTableWidgetItem(str(data[0]))
+            self.future_table.setItem(0, i, item_params)
+            for x in range(1,4):
+                item_values = QTableWidgetItem(str(data[1][x]))
+                self.future_table.setItem(x, i, item_values)
 
+            
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     
