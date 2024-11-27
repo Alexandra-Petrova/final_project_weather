@@ -9,8 +9,8 @@ from PyQt6.QtGui import QPixmap
 from pytz import timezone
 from requests_cache import utcnow
 
-from class_Location import GetLocation
-from class_Forecast import Forecasts
+from class_location import Location
+from class_forecast import Forecasts
 
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtWidgets import QApplication, QMainWindow, QPushButton, QLabel, \
@@ -43,13 +43,18 @@ class MainWindow(QMainWindow):
         time_font.setPointSize(30)
         self.local_time.setFont(time_font)
         self.current_table = QTableWidget(2, 9)
+        self.current_table.resizeColumnsToContents()
 
 
         self.today_weather = QLabel('Погода на сегодня')
         self.today_table = QTableWidget(4, 25)
+        self.today_table.resizeColumnsToContents()
 
         self.future_days_weather = QLabel('Погода на ближайшие 3 дня')
+        # self.future_days_weather.setFont(time_font)
         self.future_table = QTableWidget(4, 5)
+        for i in range (1,5):
+            self.future_table.setColumnWidth(i, 250)
         
         user_city_layout = QHBoxLayout()
         user_city_layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
@@ -87,7 +92,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
         
         try:
-            self.user_city_location = GetLocation.read_json()
+            self.user_city_location = Location.read_json()
         except (json.decoder.JSONDecodeError, FileNotFoundError):
             self.user_city_location = None
         
@@ -105,9 +110,9 @@ class MainWindow(QMainWindow):
         # if not self.user_city_location:
         if (not os.path.isfile(
                 'location.json') or self.user_city.toPlainText() !=
-                GetLocation.read_json()[
+                Location.read_json()[
                     'city_name']) and self.user_city.toPlainText() != '':
-            self.user_city_location = GetLocation(self.user_city.toPlainText())
+            self.user_city_location = Location(self.user_city.toPlainText())
             self.user_city_location.get_json()
             self.forecast_params = self.user_city_location.read_json()
             with open('forecast.json', 'w', encoding='utf-8') as file:
