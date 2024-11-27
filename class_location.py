@@ -48,15 +48,3 @@ class Location:
             "longitude": longitude,
             "timezone": timezone,
         }
-
-
-if __name__ == "__main__":
-    user_city = input("Введите название города: ")
-    user_city_location = Location(user_city)
-    user_city_location.get_json()
-    location_params = user_city_location.read_json()
-
-    print(location_params["latitude"])
-    print(location_params["longitude"])
-    print(location_params["timezone"])
-    print(location_params["city_name"])
